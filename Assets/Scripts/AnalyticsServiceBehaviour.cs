@@ -13,7 +13,7 @@ public class AnalyticsServiceBehaviour : MonoBehaviour
     private void Awake()
     {
         _saveManager = new SaveManager();
-        _analyticsService = new AnalyticsService(new MockAnalyticsEventsSender(), _saveManager.LoadState());
+        _analyticsService = new AnalyticsService(new HttpAnalyticsEventsSender("https://httpbin.org/post"), _saveManager.LoadState());
         _addEventButton.onClick.AddListener(() => _analyticsService.TrackEvent("test", Time.time.ToString(CultureInfo.InvariantCulture)));
         _saveButton.onClick.AddListener(() =>
         {

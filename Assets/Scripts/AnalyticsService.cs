@@ -59,17 +59,17 @@ public class AnalyticsService
 
         _sendInProgress = true;
 
-        (string s, UniTask<AnalyticsSendResult> task)[] pairs = _state.SerializedEvents
-            .Select(batch => (s: batch, task: _analyticsEventsSender.SendEvents(batch)))
+         
+        UniTask<(AnalyticsSendResult, string)>[] tasks = _state.SerializedEvents
+            .Select(batch => _analyticsEventsSender.SendEvents(batch))
             .ToArray();
 
-        await UniTask.WhenAll(pairs.Select(x => x.task));
+        (AnalyticsSendResult, string)[] results = await UniTask.WhenAll(tasks);
 
-        foreach ((string s, UniTask<AnalyticsSendResult> task) pair in pairs)
+        foreach ((AnalyticsSendResult, string) result in results)
         {
-            AnalyticsSendResult result = await pair.task;
-            if (result != AnalyticsSendResult.Success) continue;
-            _state.SerializedEvents.Remove(pair.s);
+            if (result.Item1 != AnalyticsSendResult.Success) continue;
+            _state.SerializedEvents.Remove(result.Item2);
         }
             
         _sendInProgress = false;

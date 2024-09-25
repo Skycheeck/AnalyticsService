@@ -2,5 +2,5 @@
 
 public interface IAnalyticsEventsSender
 {
-    UniTask<AnalyticsSendResult> SendEvents(string events);
+    UniTask<(AnalyticsSendResult, string)> SendEvents(string events);
 }

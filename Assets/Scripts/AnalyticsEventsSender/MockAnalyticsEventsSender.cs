@@ -3,9 +3,9 @@ using UnityEngine;
 
 public class MockAnalyticsEventsSender : IAnalyticsEventsSender
 {
-    public UniTask<AnalyticsSendResult> SendEvents(string events)
+    public UniTask<(AnalyticsSendResult, string)> SendEvents(string events)
     {
         Debug.Log(events);
-        return new UniTask<AnalyticsSendResult>(AnalyticsSendResult.Success);
+        return new UniTask<(AnalyticsSendResult, string)>((AnalyticsSendResult.Success, events));
     }
 }

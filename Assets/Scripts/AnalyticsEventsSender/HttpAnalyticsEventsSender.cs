@@ -10,15 +10,18 @@ public class HttpAnalyticsEventsSender : IAnalyticsEventsSender
         _url = url;
     }
 
-    public async UniTask<AnalyticsSendResult> SendEvents(string events)
+    public async UniTask<(AnalyticsSendResult, string)> SendEvents(string events)
     {
         UnityWebRequest webRequest = UnityWebRequest.Post(_url, events);
         await webRequest.SendWebRequest();
 
         if (webRequest.result == UnityWebRequest.Result.Success)
-            return AnalyticsSendResult.Success;
+        {
+            Debug.Log(webRequest.downloadHandler.text);
+            return (AnalyticsSendResult.Success, events);
+        }
         
-        Debug.Log(webRequest.error);
-        return AnalyticsSendResult.Failure;
+        Debug.LogError(webRequest.error);
+        return (AnalyticsSendResult.Failure, events);
     }
 }
