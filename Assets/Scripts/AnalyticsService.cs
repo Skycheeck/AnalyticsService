@@ -3,15 +3,15 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using DTO;
 using Newtonsoft.Json;
-using UnityEngine.Assertions;
 
 public class AnalyticsService
 {
     private const float SEND_COOLDOWN = 3f;
+    private float _timer = SEND_COOLDOWN;
 
     private readonly List<AnalyticsEventDTO> _events;
     private readonly IAnalyticsEventsSender _analyticsEventsSender;
-    private AnalyticsServiceState _state;
+    private readonly AnalyticsServiceState _state;
     private bool _sendInProgress = false;
 
     public AnalyticsServiceState State => _state;
@@ -25,8 +25,8 @@ public class AnalyticsService
 
     public void Tick(float timeElapsed)
     {
-        _state.SendTimer -= timeElapsed;
-        if (!(_state.SendTimer <= 0f)) return;
+        _timer -= timeElapsed;
+        if (!(_timer <= 0f)) return;
             
         SerializeEvents();
         SendNextEventBatch();
@@ -39,8 +39,10 @@ public class AnalyticsService
         ResetTimer();
     }
 
-    private void SerializeEvents()
+    public void SerializeEvents()
     {
+        if (_events.Count < 1) return;
+        
         string result = JsonConvert.SerializeObject(new {events = _events});
         _state.SerializedEvents.Add(result);
         _events.Clear();
@@ -48,7 +50,7 @@ public class AnalyticsService
 
     private async UniTask SendNextEventBatch()
     {
-        Assert.IsTrue(_state.SerializedEvents.Count > 0);
+        if (_state.SerializedEvents.Count < 1) return;
         
         while (_sendInProgress)
         {
@@ -61,7 +63,7 @@ public class AnalyticsService
             .Select(batch => (s: batch, task: _analyticsEventsSender.SendEvents(batch)))
             .ToArray();
 
-        UniTask.WhenAll(pairs.Select(x => x.task));
+        await UniTask.WhenAll(pairs.Select(x => x.task));
 
         foreach ((string s, UniTask<AnalyticsSendResult> task) pair in pairs)
         {
@@ -75,6 +77,6 @@ public class AnalyticsService
 
     private void ResetTimer()
     {
-        _state.SendTimer = SEND_COOLDOWN;
+        _timer = SEND_COOLDOWN;
     }
 }

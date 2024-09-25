@@ -9,12 +9,13 @@ public class SaveManager
     public void SaveState(AnalyticsServiceState analyticsServiceState)
     {
         string jsonString = JsonConvert.SerializeObject(analyticsServiceState);
+        Debug.Log($"Save is complete! Result: \n{jsonString}");
         File.WriteAllText(_saveFile, jsonString);
     }
 
     public AnalyticsServiceState LoadState()
     {
-        if (!File.Exists(_saveFile)) return new AnalyticsServiceState(3f);
+        if (!File.Exists(_saveFile)) return new AnalyticsServiceState(10);
         
         string fileContents = File.ReadAllText(_saveFile);
         return JsonConvert.DeserializeObject<AnalyticsServiceState>(fileContents);

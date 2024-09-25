@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
+[Serializable]
 public struct AnalyticsServiceState
 {
-    public readonly List<string> SerializedEvents;
-    public float SendTimer;
+    public List<string> SerializedEvents;
 
-    public AnalyticsServiceState(float timer = 1f, int eventsCapacity = 10)
+    public AnalyticsServiceState(int eventsCapacity)
     {
         SerializedEvents = new List<string>(eventsCapacity);
-        SendTimer = timer;
     }
 }
