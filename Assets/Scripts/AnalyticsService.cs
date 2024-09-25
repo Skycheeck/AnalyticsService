@@ -3,10 +3,9 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using DTO;
 using Newtonsoft.Json;
-using UnityEngine;
 using UnityEngine.Assertions;
 
-public class AnalyticsService : MonoBehaviour
+public class AnalyticsService
 {
     private const float SEND_COOLDOWN = 3f;
     
@@ -16,9 +15,9 @@ public class AnalyticsService : MonoBehaviour
 
     private State _state = new State(SEND_COOLDOWN);
 
-    private void Update()
+    private void Tick(float timeElapsed)
     {
-        _state.SendTimer -= Time.deltaTime;
+        _state.SendTimer -= timeElapsed;
         if (!(_state.SendTimer <= 0f)) return;
             
         SerializeEvents();
@@ -70,10 +69,10 @@ public class AnalyticsService : MonoBehaviour
     {
         _state.SendTimer = SEND_COOLDOWN;
     }
-    
-    struct State
+
+    private struct State
     {
-        public List<string> SerializedEvents;
+        public readonly List<string> SerializedEvents;
         public float SendTimer;
 
         public State(float timer = 1f, int eventsCapacity = 10)
