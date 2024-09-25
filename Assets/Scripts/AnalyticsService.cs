@@ -13,7 +13,7 @@ public class AnalyticsService
     private readonly IAnalyticsEventsSender _analyticsEventsSender = new MockAnalyticsEventsSender();
     private bool _sendInProgress = false;
 
-    private State _state = new State(SEND_COOLDOWN);
+    private AnalyticsServiceState _state = new AnalyticsServiceState(SEND_COOLDOWN);
 
     private void Tick(float timeElapsed)
     {
@@ -68,17 +68,5 @@ public class AnalyticsService
     private void ResetTimer()
     {
         _state.SendTimer = SEND_COOLDOWN;
-    }
-
-    private struct State
-    {
-        public readonly List<string> SerializedEvents;
-        public float SendTimer;
-
-        public State(float timer = 1f, int eventsCapacity = 10)
-        {
-            SerializedEvents = new List<string>(eventsCapacity);
-            SendTimer = timer;
-        }
     }
 }
