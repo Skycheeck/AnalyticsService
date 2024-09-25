@@ -14,7 +14,7 @@ public class SaveManager
 
     public AnalyticsServiceState LoadState()
     {
-        if (!File.Exists(_saveFile)) return new AnalyticsServiceState();
+        if (!File.Exists(_saveFile)) return new AnalyticsServiceState(3f);
         
         string fileContents = File.ReadAllText(_saveFile);
         return JsonConvert.DeserializeObject<AnalyticsServiceState>(fileContents);

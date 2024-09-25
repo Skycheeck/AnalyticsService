@@ -8,14 +8,22 @@ using UnityEngine.Assertions;
 public class AnalyticsService
 {
     private const float SEND_COOLDOWN = 3f;
-    
-    private readonly List<AnalyticsEventDTO> _events = new() {new AnalyticsEventDTO("test1", "1"), new AnalyticsEventDTO("test2", "2")};
-    private readonly IAnalyticsEventsSender _analyticsEventsSender = new MockAnalyticsEventsSender();
+
+    private readonly List<AnalyticsEventDTO> _events;
+    private readonly IAnalyticsEventsSender _analyticsEventsSender;
+    private AnalyticsServiceState _state;
     private bool _sendInProgress = false;
 
-    private AnalyticsServiceState _state = new AnalyticsServiceState(SEND_COOLDOWN);
+    public AnalyticsServiceState State => _state;
+    
+    public AnalyticsService(IAnalyticsEventsSender analyticsEventsSender, AnalyticsServiceState state)
+    {
+        _events = new List<AnalyticsEventDTO>();
+        _analyticsEventsSender = analyticsEventsSender;
+        _state = state;
+    }
 
-    private void Tick(float timeElapsed)
+    public void Tick(float timeElapsed)
     {
         _state.SendTimer -= timeElapsed;
         if (!(_state.SendTimer <= 0f)) return;
