@@ -10,7 +10,7 @@ public class AnalyticsService : MonoBehaviour
 {
     private readonly List<AnalyticsEventDTO> _events = new() {new AnalyticsEventDTO("test1", "1"), new AnalyticsEventDTO("test2", "2")};
     private readonly List<string> _serializedEvents = new();
-    private IAnalyticsEventsSender _analyticsEventsSender;
+    private readonly IAnalyticsEventsSender _analyticsEventsSender = new MockAnalyticsEventsSender();
     private bool _sendInProgress = false;
 
     private const float SEND_COOLDOWN = 3f;
