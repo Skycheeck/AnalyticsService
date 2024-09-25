@@ -8,18 +8,18 @@ using UnityEngine.Assertions;
 
 public class AnalyticsService : MonoBehaviour
 {
+    private const float SEND_COOLDOWN = 3f;
+    
     private readonly List<AnalyticsEventDTO> _events = new() {new AnalyticsEventDTO("test1", "1"), new AnalyticsEventDTO("test2", "2")};
-    private readonly List<string> _serializedEvents = new();
     private readonly IAnalyticsEventsSender _analyticsEventsSender = new MockAnalyticsEventsSender();
     private bool _sendInProgress = false;
 
-    private const float SEND_COOLDOWN = 3f;
-    private float _sendTimer = SEND_COOLDOWN;
+    private State _state = new State(SEND_COOLDOWN);
 
     private void Update()
     {
-        _sendTimer -= Time.deltaTime;
-        if (!(_sendTimer <= 0f)) return;
+        _state.SendTimer -= Time.deltaTime;
+        if (!(_state.SendTimer <= 0f)) return;
             
         SerializeEvents();
         SendNextEventBatch();
@@ -35,13 +35,13 @@ public class AnalyticsService : MonoBehaviour
     private void SerializeEvents()
     {
         string result = JsonConvert.SerializeObject(new {events = _events});
-        _serializedEvents.Add(result);
+        _state.SerializedEvents.Add(result);
         _events.Clear();
     }
 
     private async UniTask SendNextEventBatch()
     {
-        Assert.IsTrue(_serializedEvents.Count > 0);
+        Assert.IsTrue(_state.SerializedEvents.Count > 0);
         
         while (_sendInProgress)
         {
@@ -50,7 +50,7 @@ public class AnalyticsService : MonoBehaviour
 
         _sendInProgress = true;
 
-        (string s, UniTask<AnalyticsSendResult> task)[] pairs = _serializedEvents
+        (string s, UniTask<AnalyticsSendResult> task)[] pairs = _state.SerializedEvents
             .Select(batch => (s: batch, task: _analyticsEventsSender.SendEvents(batch)))
             .ToArray();
 
@@ -60,7 +60,7 @@ public class AnalyticsService : MonoBehaviour
         {
             AnalyticsSendResult result = await pair.task;
             if (result != AnalyticsSendResult.Success) continue;
-            _serializedEvents.Remove(pair.s);
+            _state.SerializedEvents.Remove(pair.s);
         }
             
         _sendInProgress = false;
@@ -68,6 +68,18 @@ public class AnalyticsService : MonoBehaviour
 
     private void ResetTimer()
     {
-        _sendTimer = SEND_COOLDOWN;
+        _state.SendTimer = SEND_COOLDOWN;
+    }
+    
+    struct State
+    {
+        public List<string> SerializedEvents;
+        public float SendTimer;
+
+        public State(float timer = 1f, int eventsCapacity = 10)
+        {
+            SerializedEvents = new List<string>(eventsCapacity);
+            SendTimer = timer;
+        }
     }
 }
